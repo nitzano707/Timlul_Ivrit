@@ -1,32 +1,41 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he">
 <head>
     <meta charset="UTF-8">
-    <title>תמלול אודיו עם GROQ</title>
-    
+    <title>תמלול אודיו</title>
 </head>
 <body>
-    <h1>תמלול אודיו בעברית</h1>
-    
-    <div class="upload-area" id="dropZone">
-        <p>גרור קובץ אודיו לכאן או לחץ לבחירת קובץ</p>
-        <input type="file" id="fileInput" accept="audio/*">
-    </div>
+    <h1>תמלול אודיו</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="audio" id="audioFile" accept="audio/*">
+        <button type="button" onclick="uploadFile()">שלח לתמלול</button>
+    </form>
+    <p>תוצאה:</p>
+    <pre id="result"></pre>
 
-    <div class="progress-container">
-        <div id="status" class="status"></div>
-        <progress id="progress" value="0" max="100"></progress>
-    </div>
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('audioFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("אנא בחר קובץ אודיו");
+                return;
+            }
 
-    <button id="downloadBtn" class="download-btn" style="display: none;">
-        הורד כקובץ טקסט
-    </button>
+            const formData = new FormData();
+            formData.append("audio", file);
 
-    <div class="transcription-container">
-        <div id="transcription"></div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@groq/groq-sdk@latest/dist/umd/index.js"></script>
-    <script src="script.js"></script>
+            try {
+                const response = await fetch("http://localhost:3000/transcribe", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                document.getElementById("result").innerText = data.text || data.error;
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    </script>
 </body>
 </html>
